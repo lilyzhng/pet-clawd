@@ -62,6 +62,18 @@ class CrabCharacter {
     var lastDockX: CGFloat = 0
     var lastDockWidth: CGFloat = 800
 
+    // MARK: - Unified Frame Control
+
+    func setFrame(_ frame: CrabSpriteRenderer.Frame) {
+        spriteRenderer.setFrame(frame)
+        svgRenderer?.setFrame(frame)
+    }
+
+    func setFlipped(_ flipped: Bool) {
+        spriteRenderer.setFlipped(flipped)
+        svgRenderer?.setFlipped(flipped)
+    }
+
     // MARK: - Setup
 
     func setup() {
@@ -111,7 +123,7 @@ class CrabCharacter {
             commentTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
                 guard let self = self else { return }
                 let greeting = "yo i'm clawd. i live here now. give me screen access so i can judge everything you do"
-                self.spriteRenderer.setFrame(.happy)
+                self.setFrame(.happy)
                 self.bounce(count: 3, height: 8)
                 self.showEffect(.sparkle)
                 self.showPreview(greeting, autoFade: false)
@@ -122,7 +134,7 @@ class CrabCharacter {
                     }, completionHandler: { self?.previewWindow?.orderOut(nil) })
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { [weak self] in
-                    self?.spriteRenderer.setFrame(.idle)
+                    self?.setFrame(.idle)
                     self?.clearEffects()
                 }
                 self.scheduleNextComment()
@@ -237,7 +249,7 @@ class CrabCharacter {
         emotionResetTimer?.invalidate()
         emotionResetTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
             guard let self = self else { return }
-            self.spriteRenderer.setFrame(.idle)
+            self.setFrame(.idle)
             CATransaction.begin()
             CATransaction.setDisableActions(true)
             self.spriteRenderer.layer.transform = CATransform3DIdentity
@@ -255,28 +267,28 @@ class CrabCharacter {
     }
 
     private func playHappy() -> Double {
-        spriteRenderer.setFrame(.happy)
+        setFrame(.happy)
         bounce(count: 3, height: 8)
         showEffect(.sparkle)
         return 1.8
     }
 
     private func playLove() -> Double {
-        spriteRenderer.setFrame(.love)
+        setFrame(.love)
         pulse(scale: 1.12, count: 2)
         showEffect(.heart)
         return 2.2
     }
 
     private func playWink() -> Double {
-        spriteRenderer.setFrame(.wink)
+        setFrame(.wink)
         tilt(angle: 0.15, duration: 0.2)
         showEffect(.sparkle)
         return 1.5
     }
 
     private func playSurprised() -> Double {
-        spriteRenderer.setFrame(.surprised)
+        setFrame(.surprised)
         jump(height: 14)
         squash(scaleX: 1.2, scaleY: 0.8, duration: 0.12)
         showEffect(.sweat)
@@ -284,27 +296,27 @@ class CrabCharacter {
     }
 
     private func playScared() -> Double {
-        spriteRenderer.setFrame(.scared)
+        setFrame(.scared)
         tremble(intensity: 2, duration: 1.0)
         showEffect(.sweat)
         return 1.8
     }
 
     private func playSmug() -> Double {
-        spriteRenderer.setFrame(.smug)
+        setFrame(.smug)
         tilt(angle: -0.1, duration: 0.3)
         return 1.5
     }
 
     private func playAngry() -> Double {
-        spriteRenderer.setFrame(.angry)
+        setFrame(.angry)
         shake(intensity: 5, count: 12)
         showEffect(.angerMark)
         return 2.2
     }
 
     private func playDead() -> Double {
-        spriteRenderer.setFrame(.dead)
+        setFrame(.dead)
         shake(intensity: 3, count: 6)
         showEffect(.skull)
         return 2.0
@@ -568,7 +580,7 @@ class CrabCharacter {
         panelOpen = true
         isWalking = false
         isPaused = true
-        spriteRenderer.setFrame(.idle)
+        setFrame(.idle)
         hideBubble()
         hidePreview()
 
@@ -819,7 +831,7 @@ class CrabCharacter {
     private func showEmotion(_ emoji: String, forText text: String = "") {
         clearEffects()
         let frame = Self.emojiMap.first(where: { $0.0 == emoji })?.1 ?? .idle
-        spriteRenderer.setFrame(frame)
+        setFrame(frame)
 
         switch emoji {
         case "😄": bounce(count: 2, height: 6); showEmojiEffect(emoji)
@@ -837,7 +849,7 @@ class CrabCharacter {
         DispatchQueue.main.asyncAfter(deadline: .now() + dur) { [weak self] in
             guard let self = self else { return }
             if self.isWalking { self.walkFrameTimer = 0 }
-            else { self.spriteRenderer.setFrame(.idle) }
+            else { self.setFrame(.idle) }
             CATransaction.begin()
             CATransaction.setDisableActions(true)
             self.spriteRenderer.layer.transform = CATransform3DIdentity
@@ -1150,14 +1162,14 @@ class CrabCharacter {
         fallVelocity = 0
         isWalking = false
         isPaused = true
-        spriteRenderer.setFrame(.surprised)
+        setFrame(.surprised)
     }
 
     func startFalling() {
         isDragging = false
         isFalling = true
         fallVelocity = 0
-        spriteRenderer.setFrame(.scared)
+        setFrame(.scared)
     }
 
     func updateFalling(dt: CFTimeInterval, floorY: CGFloat) {
@@ -1171,7 +1183,7 @@ class CrabCharacter {
             } else {
                 isFalling = false
                 fallVelocity = 0
-                spriteRenderer.setFrame(.idle)
+                setFrame(.idle)
                 walkPixelX = window.frame.origin.x
                 pauseEndTime = CACurrentMediaTime() + Double.random(in: 2.0...5.0)
             }
@@ -1224,14 +1236,14 @@ class CrabCharacter {
         isWalking = true
         walkFrameTimer = 0
         walkFrameToggle = false
-        spriteRenderer.setFlipped(!goingRight)
-        spriteRenderer.setFrame(.walkA)
+        setFlipped(!goingRight)
+        setFrame(.walkA)
     }
 
     func enterPause() {
         isWalking = false
         isPaused = true
-        spriteRenderer.setFrame(.idle)
+        setFrame(.idle)
         pauseEndTime = CACurrentMediaTime() + Double.random(in: 4.0...10.0)
     }
 
@@ -1246,11 +1258,11 @@ class CrabCharacter {
         blinkTimer += dt
         let emotionActive = !effectLayers.isEmpty || isAnimatingEmotion
         if !isBlinking && !emotionActive && blinkTimer > nextBlink {
-            isBlinking = true; blinkTimer = 0; spriteRenderer.setFrame(.blink)
+            isBlinking = true; blinkTimer = 0; setFrame(.blink)
         }
         if isBlinking && blinkTimer > 0.15 {
             isBlinking = false; blinkTimer = 0; nextBlink = 2 + Double.random(in: 0...4)
-            if !isWalking && !emotionActive { spriteRenderer.setFrame(.idle) }
+            if !isWalking && !emotionActive { setFrame(.idle) }
         }
 
         if isDragging {
@@ -1280,7 +1292,7 @@ class CrabCharacter {
             if walkFrameTimer >= 0.2 {
                 walkFrameTimer = 0
                 walkFrameToggle.toggle()
-                spriteRenderer.setFrame(walkFrameToggle ? .walkA : .walkB)
+                setFrame(walkFrameToggle ? .walkA : .walkB)
             }
             let step = walkSpeed * CGFloat(dt)
             let prevX = walkPixelX
