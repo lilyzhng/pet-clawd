@@ -143,6 +143,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         emotionItem.submenu = emotionMenu
         menu.addItem(emotionItem)
 
+        let animMenu = NSMenu()
+        for anim in SVGRenderer.allAnimations {
+            let item = NSMenuItem(title: anim.label, action: #selector(playSVGAnimation(_:)), keyEquivalent: "")
+            item.representedObject = anim.svg
+            animMenu.addItem(item)
+        }
+        let animItem = NSMenuItem(title: "Animations", action: nil, keyEquivalent: "")
+        animItem.submenu = animMenu
+        menu.addItem(animItem)
+
         menu.addItem(NSMenuItem.separator())
 
         let updateItem = NSMenuItem(title: "Check for Updates...", action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), keyEquivalent: "")
@@ -270,6 +280,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func playEmotion(_ sender: NSMenuItem) {
         guard let crab = controller?.crab, let emoji = sender.representedObject as? String else { return }
         crab.triggerEmotion(emoji)
+    }
+
+    @objc func playSVGAnimation(_ sender: NSMenuItem) {
+        guard let crab = controller?.crab, let svgName = sender.representedObject as? String else { return }
+        crab.svgRenderer?.loadSVG(named: svgName)
     }
 
     @objc func quitApp() {

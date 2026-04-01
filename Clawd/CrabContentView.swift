@@ -16,6 +16,7 @@ class CrabContentView: NSView {
     }
 
     override func mouseDown(with event: NSEvent) {
+        if event.modifierFlags.contains(.control) { return }
         isDragging = false
         guard let win = window else { return }
         let screenLoc = NSEvent.mouseLocation
@@ -46,5 +47,47 @@ class CrabContentView: NSView {
         } else {
             character?.handleClick()
         }
+    }
+
+    override func rightMouseDown(with event: NSEvent) {
+        guard let character = character else { return }
+        let menu = NSMenu()
+
+        let animMenu = NSMenu()
+        for anim in SVGRenderer.allAnimations {
+            let item = NSMenuItem(title: anim.label, action: #selector(playSVGAnimation(_:)), keyEquivalent: "")
+            item.representedObject = anim.svg
+            item.target = self
+            animMenu.addItem(item)
+        }
+        let animItem = NSMenuItem(title: "Animations", action: nil, keyEquivalent: "")
+        animItem.submenu = animMenu
+        menu.addItem(animItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        let chatItem = NSMenuItem(title: "Chat", action: #selector(openChat), keyEquivalent: "")
+        chatItem.target = self
+        menu.addItem(chatItem)
+
+        let quitItem = NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "")
+        quitItem.target = self
+        menu.addItem(quitItem)
+
+        NSMenu.popUpContextMenu(menu, with: event, for: self)
+    }
+
+    @objc private func playSVGAnimation(_ sender: NSMenuItem) {
+        guard let svgName = sender.representedObject as? String else { return }
+        character?.svgPinned = true
+        character?.svgRenderer?.loadSVG(named: svgName)
+    }
+
+    @objc private func openChat() {
+        character?.openPopover()
+    }
+
+    @objc private func quitApp() {
+        NSApp.terminate(nil)
     }
 }

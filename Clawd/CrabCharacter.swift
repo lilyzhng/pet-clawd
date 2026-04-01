@@ -62,11 +62,15 @@ class CrabCharacter {
     var lastDockX: CGFloat = 0
     var lastDockWidth: CGFloat = 800
 
+    var svgPinned = false
+
     // MARK: - Unified Frame Control
 
     func setFrame(_ frame: CrabSpriteRenderer.Frame) {
         spriteRenderer.setFrame(frame)
-        svgRenderer?.setFrame(frame)
+        if !svgPinned {
+            svgRenderer?.setFrame(frame)
+        }
     }
 
     func setFlipped(_ flipped: Bool) {
@@ -190,6 +194,7 @@ class CrabCharacter {
     private var pendingTaps = 0
 
     func handleClick() {
+        svgPinned = false
         if panelOpen {
             closePopover()
             return
@@ -686,6 +691,7 @@ class CrabCharacter {
     private func sendMessage(_ text: String) {
         terminalView?.appendUser(text)
         terminalView?.showThinking()
+        svgRenderer?.loadSVG(named: "clawd-working-thinking")
 
         if session == nil {
             let newSession = createAgentSession()
@@ -752,8 +758,15 @@ class CrabCharacter {
             }
 
             self.terminalView?.endStreaming()
-            if !self.panelOpen && !finalText.isEmpty {
-                self.showPreview(finalText, autoFade: true)
+            if !finalText.isEmpty {
+                // Parse emoji from chat response and switch SVG
+                let (emoji, _) = self.parseEmotion(finalText)
+                if !emoji.isEmpty {
+                    self.showEmotion(emoji, forText: finalText)
+                }
+                if !self.panelOpen {
+                    self.showPreview(finalText, autoFade: true)
+                }
             }
             self.hideBubble()
         }
@@ -770,6 +783,7 @@ class CrabCharacter {
         s.onToolUse = { [weak self] name, input in
             let summary = ClaudeSession.formatToolSummary(name: name, input: input)
             self?.terminalView?.appendToolUse(summary)
+            self?.svgRenderer?.loadSVG(named: "clawd-working-typing")
         }
 
         s.onToolResult = { [weak self] summary, isError in
@@ -811,6 +825,30 @@ class CrabCharacter {
         ("😴", .sleepy),
         ("💀", .dead),
         ("😍", .love),
+        ("🧙", .love),      // wizard
+        ("🔨", .wink),      // building/typing
+        ("🎵", .smug),      // conducting
+        ("🧹", .smug),      // sweeping
+        ("🤔", .surprised), // thinking
+        ("✨", .happy),     // magical
+    ]
+
+    // Extended emoji-to-SVG mapping (bypasses sprite frames)
+    private static let emojiSVGMap: [String: String] = [
+        "😄": "clawd-happy",
+        "😭": "clawd-idle-doze",
+        "😡": "clawd-error",
+        "😨": "clawd-notification",
+        "🤢": "clawd-react-annoyed",
+        "😴": "clawd-sleeping",
+        "💀": "clawd-collapse-sleep",
+        "😍": "clawd-mini-happy",
+        "🧙": "clawd-working-wizard",
+        "🔨": "clawd-working-building",
+        "🎵": "clawd-working-conducting",
+        "🧹": "clawd-working-sweeping",
+        "🤔": "clawd-working-ultrathink",
+        "✨": "clawd-working-wizard",
     ]
 
     private func parseEmotion(_ text: String) -> (String, String) {
@@ -831,7 +869,14 @@ class CrabCharacter {
     private func showEmotion(_ emoji: String, forText text: String = "") {
         clearEffects()
         let frame = Self.emojiMap.first(where: { $0.0 == emoji })?.1 ?? .idle
-        setFrame(frame)
+        spriteRenderer.setFrame(frame)
+        // Direct SVG mapping for richer animations
+        if let svgName = Self.emojiSVGMap[emoji] {
+            svgPinned = false
+            svgRenderer?.loadSVG(named: svgName)
+        } else {
+            svgRenderer?.setFrame(frame)
+        }
 
         switch emoji {
         case "😄": bounce(count: 2, height: 6); showEmojiEffect(emoji)
