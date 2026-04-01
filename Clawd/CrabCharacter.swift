@@ -3,9 +3,10 @@ import AppKit
 class CrabCharacter {
     var window: NSWindow!
     var spriteRenderer: CrabSpriteRenderer!
+    var svgRenderer: SVGRenderer?
     weak var controller: ClawdController?
 
-    let displaySize: CGFloat = 80
+    let displaySize: CGFloat = 300
 
     var isWalking = false
     var isPaused = true
@@ -81,16 +82,14 @@ class CrabCharacter {
         let host = CrabContentView(frame: CGRect(x: 0, y: 0, width: displaySize, height: displaySize))
         host.character = self
         host.wantsLayer = true
-        host.canDrawSubviewsIntoLayer = true
-        host.layerContentsRedrawPolicy = .never
         host.layer?.backgroundColor = NSColor.clear.cgColor
 
-        let shadowLayer = CALayer()
-        shadowLayer.frame = CGRect(x: 18, y: 4, width: displaySize - 36, height: 12)
-        shadowLayer.cornerRadius = 6
-        shadowLayer.backgroundColor = NSColor.black.withAlphaComponent(0.13).cgColor
-        host.layer?.addSublayer(shadowLayer)
-        host.layer?.addSublayer(spriteRenderer.layer)
+        let svg = SVGRenderer()
+        svg.webView.frame = CGRect(x: 0, y: 0, width: displaySize, height: displaySize)
+        svg.loadSVG(named: "clawd-idle-follow")
+        host.addSubview(svg.webView)
+        svgRenderer = svg
+
         window.contentView = host
         window.orderFrontRegardless()
         lastTick = CACurrentMediaTime()

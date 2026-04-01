@@ -8,6 +8,9 @@ class CrabContentView: NSView {
     override var isFlipped: Bool { false }
 
     override func hitTest(_ point: NSPoint) -> NSView? {
+        if character?.svgRenderer != nil {
+            return bounds.contains(point) ? self : nil
+        }
         guard let renderer = character?.spriteRenderer else { return nil }
         return renderer.isOpaqueAt(point: point) ? self : nil
     }

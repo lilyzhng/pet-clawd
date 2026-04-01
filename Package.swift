@@ -19,6 +19,7 @@ let package = Package(
             ],
             resources: [
                 .process("Assets.xcassets"),
+                .copy("svg"),
             ],
             swiftSettings: [
                 .unsafeFlags(["-parse-as-library"]),

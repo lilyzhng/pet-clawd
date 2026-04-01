@@ -38,7 +38,7 @@ class ShellEnvironment {
     private static func captureShellEnv() -> [String: String]? {
         let proc = Process()
         proc.executableURL = URL(fileURLWithPath: "/bin/zsh")
-        proc.arguments = ["-l", "-i", "-c", "env"]
+        proc.arguments = ["-l", "-c", "env"]
         proc.environment = ["HOME": FileManager.default.homeDirectoryForCurrentUser.path]
 
         let pipe = Pipe()
